@@ -1,32 +1,72 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
-public class server
-{
+public class server {
 
     public static void main(String[] args) throws Exception {
+
+
+
         Scanner input = new Scanner(System.in);
         ServerSocket sersock = new ServerSocket(8545);
         System.out.println("server running...");
-        Socket sock = sersock.accept( );
-                        BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
-                        OutputStream ostream = sock.getOutputStream();
-                        PrintWriter pwrite = new PrintWriter(ostream, true);
 
-                        InputStream istream = sock.getInputStream();
-                        BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
 
-                        System.out.println("What your username?");
-                        String username = input.nextLine();
 
-                        Thread t = new Thread(new Runnable(){
-                            @Override
-                            public void run() {
-                                while(true){
-                                    try {
+        ArrayList<Receive> users = new ArrayList<Receive>();
+
+        while(true){
+
+            Socket sock = sersock.accept( );
+            users.add( new Receive("mackelito", sock));
+            TheThreads t1 = new TheThreads(sock, users);
+            t1.run();
+
+        }
+
+
+
+
+
+
+    }
+}
+class Receive{
+    public static String user;
+    public static Socket sock;
+
+    public Receive(String userin, Socket sockin) {
+        user = userin;
+        sock = sockin;
+    }
+
+    public static BufferedReader read() throws IOException {
+        BufferedReader receiveRead = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+        return receiveRead;
+    }
+}
+
+class TheThreads extends Thread{
+
+    public static Socket sock;
+    public static ArrayList<Receive> users = new ArrayList<Receive>();
+
+    public TheThreads(Socket sockin, ArrayList usersin){
+        users = usersin;
+        sock = sockin;
+    }
+
+    @Override
+    public void run(){
+        Thread t = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                while(true){
+                    try {
                         String receiveMessage;
-                        if((receiveMessage = receiveRead.readLine()) != null) {
+                        if((receiveMessage = user.read().readLine()) != null) {
                             System.out.println(receiveMessage);
                         }
                     } catch (IOException e) {
@@ -35,16 +75,5 @@ public class server
                 }
             }});
 
-        t.start();
-
-        while (true) {
-            String sendMessage = "no";
-            if ((sendMessage = keyRead.readLine()) != null) {
-                pwrite.println("From " + username + ": " + sendMessage);
-                pwrite.flush();
-            }
-        }
     }
 }
-
-
