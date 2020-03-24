@@ -14,19 +14,31 @@ public class server
         InputStream istream = sock.getInputStream();
         BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
 
-        String receiveMessage, sendMessage;
-
-            while(true) {
-                if((receiveMessage = receiveRead.readLine()) != null) {
-                    System.out.println("From Client:" + receiveMessage);
+        Thread t = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                while(true){
+                    try {
+                        String receiveMessage;
+                        if((receiveMessage = receiveRead.readLine()) != null) {
+                            System.out.println("From Client: " + receiveMessage);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+            }});
 
+        t.start();
 
-            if((sendMessage = keyRead.readLine()) != null){
+        while (true) {
+            String sendMessage = "no";
+            if ((sendMessage = keyRead.readLine()) != null) {
                 pwrite.println(sendMessage);
                 pwrite.flush();
-                }
             }
         }
     }
+}
+
 
