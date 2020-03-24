@@ -2,8 +2,8 @@ import java.io.*;
 import java.net.*;
 public class server
 {
-    public static void main(String[] args) throws Exception
-    {
+
+    public static void main(String[] args) throws Exception {
         ServerSocket sersock = new ServerSocket(8545);
         System.out.println("server running...");
         Socket sock = sersock.accept( );
@@ -15,16 +15,18 @@ public class server
         BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
 
         String receiveMessage, sendMessage;
-        while(true)
-        {
-            if((receiveMessage = receiveRead.readLine()) != null) {
-                System.out.println(receiveMessage);
-            }
+
+            while(true) {
+                if((receiveMessage = receiveRead.readLine()) != null) {
+                    System.out.println("From Client:" + receiveMessage);
+                }
+
+
             if((sendMessage = keyRead.readLine()) != null){
                 pwrite.println(sendMessage);
                 pwrite.flush();
+                }
             }
-
         }
     }
-}
+

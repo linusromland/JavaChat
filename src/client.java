@@ -13,17 +13,17 @@ public class client
         InputStream istream = sock.getInputStream();
         BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
 
-        System.out.println("Chat");
+        System.out.println("Connected to server...");
 
         String receiveMessage, sendMessage;
         while(true)
         {
-            if((receiveMessage = receiveRead.readLine()) != null) {
-                System.out.println(receiveMessage);
-            }
             if((sendMessage = keyRead.readLine()) != null){
                 pwrite.println(sendMessage);
                 pwrite.flush();
+            }
+            if((receiveMessage = receiveRead.readLine()) != null) {
+                System.out.println("From Server:" +receiveMessage);
             }
         }
     }
