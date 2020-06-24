@@ -43,7 +43,7 @@ class Multithreading extends Thread {
 
             while (true) {
                 if((receiveMessage = receiveRead.readLine()) != null) {
-                    System.out.println("From Server:" +receiveMessage);
+                    System.out.println(receiveMessage);
                 }
             }
 
