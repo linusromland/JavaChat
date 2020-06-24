@@ -8,7 +8,7 @@ public class User {
     public String username;
 
     public User(Socket sock) throws IOException {
-        Thread t = new Thread(new Runnable(){
+        Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
@@ -28,7 +28,7 @@ public class User {
                 String receiveMessage;
                 username = "Guest";
                 Boolean usernameset = false;
-                while(!usernameset){
+                while (!usernameset) {
                     try {
                         if ((receiveMessage = in.readLine()) != null) {
                             if (CheckUsername(receiveMessage)) {
@@ -45,18 +45,18 @@ public class User {
                         e.printStackTrace();
                     }
                 }
-                Thread object = new Thread(new MultithreadingDemo(server.users.size(), out, username));
+                Thread object = new Thread(new MultithreadingDemo(server.users.size()-1, out, username));
                 object.start();
-            }});
+            }
+        });
         t.start();
-
 
 
     }
 
     private boolean CheckUsername(String receiveMessage) {
         for (int i = 0; i < server.users.size(); i++) {
-            if (server.users.get(i).username.equals(receiveMessage)){
+            if (server.users.get(i).username.equals(receiveMessage)) {
                 return false;
             }
         }
@@ -84,18 +84,18 @@ class MultithreadingDemo extends Thread {
                 if ((receiveMessage = server.users.get(num).in.readLine()) != null) {
                     System.out.println("From Client:" + receiveMessage);
                     for (int i = 0; i < server.users.size(); i++) {
-                        if (server.users.get(i).out != curout){
-                            server.users.get(i).out.println("From "+ server.users.get(num).username + ":" + receiveMessage);
+                        if (server.users.get(i).out != curout) {
+                            server.users.get(i).out.println("From " + server.users.get(num).username + ":" + receiveMessage);
                             server.users.get(i).out.flush();
                         }
                     }
 
                 }
             }
-
-        } catch (Exception e) {
-            // Throwing an exception
-            System.out.println("Exception is caught");
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
         }
+
     }
 }
+
