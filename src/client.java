@@ -1,11 +1,20 @@
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
 
 public class client
 {
     public static void main(String[] args) throws Exception
     {
-        Socket sock = new Socket("romland.space", 8545);
+        Scanner input = new Scanner(System.in);
+        System.out.println("What server do you want to connect to?");
+        System.out.println("Press enter for default! (romland.space)");
+        String server = input.nextLine();
+        if (server.equals("")){
+            server = "romland.space";
+        }
+
+        Socket sock = new Socket(server, 8545);
         BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
         OutputStream ostream = sock.getOutputStream();
         PrintWriter pwrite = new PrintWriter(ostream, true);
@@ -13,7 +22,7 @@ public class client
         InputStream istream = sock.getInputStream();
         BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
 
-        System.out.println("Connected to server...");
+        System.out.println("Connected to " + server + "!");
 
         Thread object = new Thread(new Multithreading(receiveRead));
         object.start();
