@@ -8,29 +8,48 @@ public class User {
     public String username;
 
     public User(Socket sock) throws IOException {
-        System.out.println("New User Created!");
-        out = new PrintWriter(sock.getOutputStream(), true);
-        out.println("Whats is your username?");
-        out.flush();
-        in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-        String receiveMessage;
-        username = "Guest";
-        Boolean usernameset = false;
-        while(!usernameset){
-        if ((receiveMessage = in.readLine()) != null) {
-            if (CheckUsername(receiveMessage)) {
-                username = receiveMessage;
-                out.println("Username is set to " + username);
+        Thread t = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                System.out.println("New User Created!");
+                try {
+                    out = new PrintWriter(sock.getOutputStream(), true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                out.println("Whats is your username?");
                 out.flush();
-                usernameset = true;
-            } else {
-                out.println("Sorry, that username is taken, try again!");
-                out.flush();
-            }
-        }
-        }
-        Thread object = new Thread(new MultithreadingDemo(server.users.size(), out, username));
-        object.start();
+                try {
+                    in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String receiveMessage;
+                username = "Guest";
+                Boolean usernameset = false;
+                while(!usernameset){
+                    try {
+                        if ((receiveMessage = in.readLine()) != null) {
+                            if (CheckUsername(receiveMessage)) {
+                                username = receiveMessage;
+                                out.println("Username is set to " + username);
+                                out.flush();
+                                usernameset = true;
+                            } else {
+                                out.println("Sorry, that username is taken, try again!");
+                                out.flush();
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Thread object = new Thread(new MultithreadingDemo(server.users.size(), out, username));
+                object.start();
+            }});
+        t.start();
+
 
 
     }
