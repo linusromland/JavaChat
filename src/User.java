@@ -1,30 +1,44 @@
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class User {
 
     public PrintWriter out;
     public BufferedReader in;
     public String username;
+    public int groupNumber;
+    public int loggedInNumber;
+    public Boolean loggedIn = true;
+    private ArrayList<User> users;
+
 
     public User(Socket sock) throws IOException {
+        System.out.println("User creation in progress");
+        out = new PrintWriter(sock.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+    }
+
+    private boolean CheckUsername(String receiveMessage) {
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).username.equals(receiveMessage)) {
+                loggedInNumber = i;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void CreateUser(Socket sock, int num) {
+        groupNumber = num;
         Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                System.out.println("New User Created!");
-                try {
-                    out = new PrintWriter(sock.getOutputStream(), true);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                users = server.groups.get(groupNumber).users;
                 out.println("Whats is your username?");
                 out.flush();
-                try {
-                    in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 String receiveMessage;
                 username = "Guest";
                 Boolean usernameset = false;
@@ -36,7 +50,9 @@ public class User {
                                 out.println("Username is set to " + username);
                                 out.flush();
                                 usernameset = true;
-                            } else {
+                            } else if (!users.get(loggedInNumber).loggedIn){
+                                System.out.println("already logged in f u");
+                            }else {
                                 out.println("Sorry, that username is taken, try again!");
                                 out.flush();
                             }
@@ -44,52 +60,54 @@ public class User {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                 }
-                Thread object = new Thread(new MultithreadingDemo(server.users.size()-1, out, username));
+                System.out.println("User \"" + username + "\" created!");
+                users = server.groups.get(groupNumber).users;
+                for (User user : users) {
+                    System.out.println("Users in group: " + user.username + "with id: " + (users.size() - 1));
+                }
+                Thread object = new Thread(new CommunicationThread(users.size() - 1, out, username, groupNumber));
                 object.start();
             }
         });
         t.start();
-
-
-    }
-
-    private boolean CheckUsername(String receiveMessage) {
-        for (int i = 0; i < server.users.size(); i++) {
-            if (server.users.get(i).username.equals(receiveMessage)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
 }
 
-class MultithreadingDemo extends Thread {
-    public int num;
-    public PrintWriter curout;
-    public String name;
+class CommunicationThread extends Thread {
+    public int userNumber;
+    public PrintWriter out;
+    public String userName;
+    public int groupNumber;
 
-    public MultithreadingDemo(int usrnum, PrintWriter out, String username) {
-        num = usrnum;
-        curout = out;
-        name = username;
+    public CommunicationThread(int userNumberIN, PrintWriter outIN, String userNameIN, int groupNumberIN) {
+        userNumber = userNumberIN;
+        out = outIN;
+        userName = userNameIN;
+        groupNumber = groupNumberIN;
     }
 
     public void run() {
         try {
             while (true) {
                 String receiveMessage;
-                if ((receiveMessage = server.users.get(num).in.readLine()) != null) {
-                    System.out.println("From Client:" + receiveMessage);
-                    for (int i = 0; i < server.users.size(); i++) {
-                        if (server.users.get(i).out != curout) {
-                            server.users.get(i).out.println("From " + server.users.get(num).username + ":" + receiveMessage);
-                            server.users.get(i).out.flush();
+                ArrayList<User> users = server.groups.get(groupNumber).users;
+
+                if ((receiveMessage = users.get(userNumber).in.readLine()) != null) {
+                    System.out.println("From " + users.get(userNumber).username + ":" + receiveMessage);
+                    for (int i = 0; i < users.size(); i++) {
+                        if (users.get(i).out != out) {
+                            users.get(i).out.println("From " + users.get(userNumber).username + ":" + receiveMessage);
+                            users.get(i).out.flush();
                         }
                     }
 
+                } else {
+                    server.groups.get(groupNumber).users.get(userNumber).loggedIn = false;
+                    System.out.println("User \"" + userName + "\" logged out!");
+                    break;
                 }
             }
         } catch (IOException ioException) {
